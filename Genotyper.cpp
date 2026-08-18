@@ -634,6 +634,9 @@ int main(int argc, char *argv[])
 	genotyper.FinalizeReadAssignments() ;
 	PrintLog( "Finish read fragment assignments. %d read fragments can be assigned (average %.2lf alleles/read).", 
 			alignedFragmentCnt, genotyper.GetAverageReadAssignmentCnt()) ;
+	
+	// exporting read allele weights 
+	genotyper.ExportReadAlleleWeights(outputPrefix);
 
 	// Get some global abundance information, 
 	// need for allele selection.

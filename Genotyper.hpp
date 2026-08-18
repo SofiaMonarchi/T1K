@@ -2241,6 +2241,48 @@ public:
 	{
 		return alleleInfo[alleleIdx].geneIdx ;
 	}
+
+	// Export the read-to-allele likelihood data used by the model.
+	// For reproducing the likelihood externally.
+	void ExportReadAlleleWeights(const char *prefix) 
+	{
+		char filename[2048];
+		snprintf(filename, sizeof(filename), "%s_read_allele_weights.tsv", prefix);
+
+		FILE *fp = fopen(filename, "w");
+		if (!fp) return;
+
+		fprintf(fp, "read_group_id\tread_group_count\tallele_idx\tallele_name\tassignment_start\tassignment_end\tassignment_qual\tweight\tadjust_weight\tallele_abundance\tequivalent_class\n");
+
+		for (int r = 0 ; r < readCnt ; ++r) 
+		{
+			double readGroupCount = 0.0 ;
+			for (int a = 0 ; a < (int)readAssignments[r].size() ; ++a)
+				if (readAssignments[r][a].weight > readGroupCount)
+					readGroupCount = readAssignments[r][a].weight ;
+
+			for (int a = 0 ; a < (int)readAssignments[r].size() ; ++a) 
+			{
+				const struct _readAssignment &assign = readAssignments[r][a];
+				int alleleIdx = assign.alleleIdx ;
+				int ecIdx = alleleInfo[alleleIdx].equivalentClass ;
+				fprintf(fp, "%d\t%.6f\t%d\t%s\t%d\t%d\t%.6f\t%.6f\t%.6f\t%.6f\t%d\n",
+					r,
+					readGroupCount,
+					alleleIdx,
+					refSet.GetSeqName(alleleIdx),
+					assign.start,
+					assign.end,
+					assign.qual,
+					assign.weight,
+					assign.adjustWeight,
+					alleleInfo[alleleIdx].abundance,
+					ecIdx
+				);
+			}
+		}
+		fclose(fp);
+	}
 } ;
 
 #endif
